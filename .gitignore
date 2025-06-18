@@ -1,0 +1,5 @@
+.idea/
+__pycache__/
+.pytest_cache/
+guardin_mind.egg-info/
+mind_logs.log

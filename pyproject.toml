@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "guardin-mind"
+dynamic = ["version"]
+description = "The framework for the efficient creation of programmatic APIs and microservices"
+readme = "README.md"
+authors = [ {name = "Walter Solment", email = "esolment@gmail.com"} ]
+license = { text = "MIT" }
+urls = { "repository" = "https://github.com/guardin-mind/guardin-mind" }
+requires-python = ">=3.11.4"
+dependencies = [
+    "colorama",
+    "packaging"
+]
+
+[project.scripts]
+mind = "guardin_mind.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "coverage"
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["guardin_mind"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-v"

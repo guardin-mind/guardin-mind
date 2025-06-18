@@ -1,0 +1,10 @@
+name = "HelloWorld" # Required parameter
+version = "1.0.0" # Required parameter
+description = "Hello World for the example of minder" # Short description. Required parameter
+authors = [{ name = "First Author", email = "email@example.org" }, { name = "Second Author", "email" = "email@example.org" }] # The list of authors. If there is only one author, make a list with one dictionary. The `name` and `email` fields are also required.
+long_description = "This is a minimal example of how the Minder framework works." # Full description
+url = "https://github.com/yourname/HelloWorld" # Url for source code
+license = "MIT" # Minder license
+python_requires = ">=3.12" # Suitable Python versions
+mind_requires = ">=0.1.0" # Suitable Mind versions
+install_requires = ["requests"] # List of required dependencies
