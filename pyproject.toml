@@ -13,7 +13,8 @@ urls = { "repository" = "https://github.com/guardin-mind/guardin-mind" }
 requires-python = ">=3.11.4"
 dependencies = [
     "colorama",
-    "packaging"
+    "packaging",
+    "requests"
 ]
 
 [project.scripts]

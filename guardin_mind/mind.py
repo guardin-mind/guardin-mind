@@ -1,7 +1,7 @@
 from .mind_utils.logger import * # Import logger
 from .mind_utils.exceptions import * # Import custom exceptions
 from .manager import ConfigRead # Import manager settings
-from colorama import init, Fore, Back, Style # Use colorama for color prints
+from colorama import init, Fore, Style # Use colorama for color prints
 import os
 import inspect
 import tomllib
@@ -85,7 +85,7 @@ class MinderSearch:
             # Log error if debug mode is enabled
             if self.debug_mode:
                 self.logger.error(f"Failed to load minder: {e}")
-                print(Fore.RED + f"Failed to load {minder_name}: {e}")
+                print(Fore.RED + f"Failed to load {minder_name}: {e}" + Style.RESET_ALL)
 
             return None
 
@@ -111,7 +111,7 @@ class MinderSearch:
 
         # If the path to a specific minder is not passed, find minders locally
         if not self.minder_path:
-            print(Fore.CYAN + f"Starting a local {minder_name} search")
+            print(Fore.CYAN + f"Starting a local {minder_name} search" + Style.RESET_ALL)
             if self.debug_mode:
                 self.logger.info(f"Starting a local {minder_name} search")
 
@@ -125,7 +125,7 @@ class MinderSearch:
                 raise FileNotFoundError(f"The minder `{minder_name}` folder was not found on the path `{self.minder_path}`")
             minder_folder_path = self.minder_path
 
-        print(Fore.CYAN + f"Starting reading the configs")
+        print(Fore.CYAN + f"Starting reading the configs" + Style.RESET_ALL)
         if self.debug_mode:
             self.logger.info(f"Starting reading the configs")
             
@@ -144,7 +144,7 @@ class MinderSearch:
         except KeyError as e:
             raise ValueError(f"Missing required configuration parameter {e} in Minder '{minder_name}'. List of required parameters: 'name', 'version', 'description', 'author'")
 
-        print(Fore.CYAN + f"Checking {minder_name} compatibility")
+        print(Fore.CYAN + f"Checking {minder_name} compatibility" + Style.RESET_ALL)
         if self.debug_mode:
             self.logger.info(f"Checking {minder_name} compatibility")
 
@@ -171,7 +171,7 @@ class MinderSearch:
         except KeyError:
             pass
 
-        print(Fore.CYAN + f"Starting checking the {minder_name} dependencies")
+        print(Fore.CYAN + f"Starting checking the {minder_name} dependencies" + Style.RESET_ALL)
         if self.debug_mode:
             self.logger.info(f"Starting checking the {minder_name} dependencies")
 
@@ -186,7 +186,7 @@ class MinderSearch:
         except KeyError:
             pass
 
-        print(Fore.CYAN + f"Starting to load the {minder_name}")
+        print(Fore.CYAN + f"Starting to load the {minder_name}" + Style.RESET_ALL)
         if self.debug_mode:
             self.logger.info(f"Starting to load the {minder_name}")
         
