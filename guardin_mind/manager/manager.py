@@ -14,18 +14,19 @@ class ConfigRead:
     required_fields = [
         'name',
         'version',
-        'description',
-        'authors'
     ]
+
     # Optional config fields
     optional_fields = [
-        'long_description',
-        'author_email',
-        'url',
+        'description',
+        'authors',
+        'readme',
+        'urls',
         'license',
-        'python_requires',
-        'mind_requires',
-        'install_requires'
+        'python',  # Required python version
+        'mind',    # Required mind version
+        'install_requires',  # List of required libraries
+        'requires_minders'   # List of required minders
     ]
 
     def __init__(self, target):
@@ -45,18 +46,22 @@ class ConfigRead:
         except tomllib.TOMLDecodeError as e:
             raise ValueError(f"Invalid TOML format: {e}")
 
-        # Assigning the required fields
+        # Получаем вложенную секцию minder
+        minder_config = config.get('minder')
+        if minder_config is None:
+            raise ValueError("Missing [minder] section in config")
+
+        # Assigning required fields
         for field in ConfigRead.required_fields:
-            if field in config:
-                setattr(self.target, field, config[field])
+            if field in minder_config:
+                setattr(self.target, field.replace('-', '_'), minder_config[field])
             else:
                 raise ValueError(f"Missing required field: {field}")
 
-        # Processing optional fields
+        # Assigning optional fields
         for field in ConfigRead.optional_fields:
-            if field in config:
-                setattr(self.target, field, config[field])
-
+            if field in minder_config:
+                setattr(self.target, field.replace('-', '_'), minder_config[field])
 
 def limit_concurrency(max_concurrent: int):
     # Семофор для синхронных вызовов

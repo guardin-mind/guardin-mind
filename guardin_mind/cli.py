@@ -12,6 +12,10 @@ import io
 import os
 
 def install_command(args):
+    """
+    Accepts arguments for installing the minder, and installs it
+    """
+
     init()  # Init colorama
 
     os_name: str = platform.system()  # Get OS
@@ -92,7 +96,9 @@ def install_command(args):
             print(Fore.RED + f"    Error when downloading the minder from github. Error code: {response.status_code} for {zip_url}" + Style.RESET_ALL)
 
     print(Fore.CYAN + f"Collecting {author_minder}" + Style.RESET_ALL)
-    download_repo_zip(f"{author}/{minder}", install_path)
+    download_repo_zip(f"{author}/{minder}", install_path) # Download minder from github to minders folder
+
+    
 
 def run_command(args):
     mind = Mind()

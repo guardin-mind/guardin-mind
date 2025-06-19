@@ -4,12 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "guardin-mind"
-dynamic = ["version"]
+version = "0.1.2"
+# The version needs to be duplicated in several places:
+# 1. pyproject.toml/[project]/version
+# 3. guardin_mind/__init__.py/__version__
 description = "The framework for the efficient creation of programmatic APIs and microservices"
-readme = "README.md"
-authors = [ {name = "Walter Solment", email = "esolment@gmail.com"} ]
-license = { text = "MIT" }
-urls = { "repository" = "https://github.com/guardin-mind/guardin-mind" }
+readme = { file = "README.md", content-type = "text/markdown" } # README file
+authors = [
+    { name = "Walter Solment", email = "esolment@gmail.com" }
+]
+license = "MIT"
+urls = { repository = "https://github.com/guardin-mind/guardin-mind" } # Repository
 requires-python = ">=3.11.4"
 dependencies = [
     "colorama",
@@ -17,9 +22,11 @@ dependencies = [
     "requests"
 ]
 
+# CLI
 [project.scripts]
 mind = "guardin_mind.cli:main"
 
+# Dependencies for develop
 [project.optional-dependencies]
 dev = [
     "pytest",

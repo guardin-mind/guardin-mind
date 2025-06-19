@@ -1,10 +1,21 @@
-name = "Template" # Required parameter
-version = "0.1.0" # Required parameter
-description = "Template for Minder" # Short description. Required parameter
-authors = [{ name = "Author Name", email = "author@email.org" }] # The list of authors. If there is only one author, make a list with one dictionary. The `name` and `email` fields are also required.
-long_description = "This is the template for creating minders." # Full description
-url = "https://github.com/yourname/Template" # Url for source code
+[minder]
+name = "HelloWorld" # Required parameter
+version = "1.0.0" # Required parameter
+description = "Hello World for the example of minder" # Short description. Required parameter
+authors = [ # The list of authors. If there is only one author, make a list with one dictionary. The `name` and `email` fields are also required.
+    { name = "First Author", email = "email@example.org" },
+    { name = "Second Author", "email" = "email@example.org" }
+]
+readme = "README.md" #  README file
+urls = [ # Links. For example, a repository, an official website, etc.
+    "https://github.com/yourname/MinderName"
+]
 license = "MIT" # Minder license
-python_requires = ">=3.12" # Suitable Python versions
-mind_requires = ">=0.1.0" # Suitable Mind versions
-install_requires = ["first_library_name", "second_library_name"] # List of required dependencies
+python = ">=3.12" # Required Python version
+mind = ">=0.1.0" # Required Mind version
+install_requires = [ # List of required libraries
+    "requests"
+]
+requires_minders = [ # List of required minders
+    "HelloWorld"
+]

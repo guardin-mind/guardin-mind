@@ -28,4 +28,3 @@ class HelloWorld:
         await asyncio.sleep(2)
 
         return "Hello World"
-    
