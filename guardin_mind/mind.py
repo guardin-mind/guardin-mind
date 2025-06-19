@@ -1,16 +1,10 @@
 from .mind_utils.logger import * # Import logger
-from .mind_utils.exceptions import * # Import custom exceptions
-from .manager import ConfigRead # Import manager settings
 from colorama import init, Fore, Style # Use colorama for color prints
 import os
 import inspect
-import tomllib
 import importlib.util
-import subprocess
 import re
-from typing import TypeVar, Type, cast
-from packaging.specifiers import SpecifierSet
-import sys
+from typing import TypeVar, Type
 
 init(autoreset=True) # Init colorama
 
@@ -124,67 +118,6 @@ class MinderSearch:
             if not os.path.isfile(os.path.join(self.minder_path, "minder.py")):
                 raise FileNotFoundError(f"The minder `{minder_name}` folder was not found on the path `{self.minder_path}`")
             minder_folder_path = self.minder_path
-
-        print(Fore.CYAN + f"Starting reading the configs" + Style.RESET_ALL)
-        if self.debug_mode:
-            self.logger.info(f"Starting reading the configs")
-            
-        # Open and parse the TOML config file inside the minder directory
-        with open(f"{minder_folder_path}/minder_config.toml", "rb") as f:
-            config = tomllib.load(f)
-
-        try:
-            # Checking for required parameters
-            name = config["name"]
-            version = config["version"]
-            description = config["description"]
-            authors = config["authors"]
-            authors[0]["name"]
-            authors[0]["email"]
-        except KeyError as e:
-            raise ValueError(f"Missing required configuration parameter {e} in Minder '{minder_name}'. List of required parameters: 'name', 'version', 'description', 'author'")
-
-        print(Fore.CYAN + f"Checking {minder_name} compatibility" + Style.RESET_ALL)
-        if self.debug_mode:
-            self.logger.info(f"Checking {minder_name} compatibility")
-
-        # Check Python version
-        try:
-            condition = config["python_requires"]
-            current_version = ".".join(map(str, sys.version_info[:3])) # Get current Python version
-
-            spec = SpecifierSet(condition)
-
-            if not current_version in spec:
-                raise PythonVersionError(f"Current Python version {current_version} does NOT match condition {condition}")
-        except KeyError:
-            pass
-
-        # Check GuardinMind version
-        try:
-            condition = config["mind_requires"]
-
-            spec = SpecifierSet(condition)
-
-            if not self.version in spec:
-                raise GuardinMindVersionError(f"Current GuardinMind version {self.version} does NOT match condition {condition}")
-        except KeyError:
-            pass
-
-        print(Fore.CYAN + f"Starting checking the {minder_name} dependencies" + Style.RESET_ALL)
-        if self.debug_mode:
-            self.logger.info(f"Starting checking the {minder_name} dependencies")
-
-        # Installing minder dependencies
-        try:
-            dependencies = config["install_requires"] # Read the requires of minder
-
-            for lib in dependencies:
-                if importlib.util.find_spec(lib) is None:
-                    print(f"{lib} is not installed. Installing...")
-                    subprocess.check_call([sys.executable, "-m", "pip", "install", lib])
-        except KeyError:
-            pass
 
         print(Fore.CYAN + f"Starting to load the {minder_name}" + Style.RESET_ALL)
         if self.debug_mode:

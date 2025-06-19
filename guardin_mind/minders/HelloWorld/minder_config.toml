@@ -2,7 +2,7 @@
 name = "HelloWorld" # Required parameter
 version = "1.0.0" # Required parameter
 description = "Hello World for the example of minder" # Short description. Required parameter
-authors = [ # The list of authors. If there is only one author, make a list with one dictionary. The `name` and `email` fields are also required.
+authors = [ # The list of authors. If there is only one author, make a list with one dictionary.
     { name = "First Author", email = "email@example.org" },
     { name = "Second Author", "email" = "email@example.org" }
 ]
@@ -13,9 +13,9 @@ urls = [ # Links. For example, a repository, an official website, etc.
 license = "MIT" # Minder license
 python = ">=3.12" # Required Python version
 mind = ">=0.1.0" # Required Mind version
-install_requires = [ # List of required libraries
+install-requires = [ # List of required libraries
     "requests"
 ]
-requires_minders = [ # List of required minders
+requires-minders = [ # List of required minders
     "HelloWorld"
 ]

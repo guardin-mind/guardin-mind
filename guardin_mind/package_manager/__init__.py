@@ -1,0 +1,1 @@
+from .package_manager import install_minder

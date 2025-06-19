@@ -28,3 +28,6 @@ class HelloWorld:
         await asyncio.sleep(2)
 
         return "Hello World"
+    
+hello_world = HelloWorld()
+print(hello_world.name)

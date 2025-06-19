@@ -25,8 +25,8 @@ class ConfigRead:
         'license',
         'python',  # Required python version
         'mind',    # Required mind version
-        'install_requires',  # List of required libraries
-        'requires_minders'   # List of required minders
+        'install-requires',  # List of required libraries
+        'requires-minders'   # List of required minders
     ]
 
     def __init__(self, target):

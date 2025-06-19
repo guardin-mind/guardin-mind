@@ -1,6 +1,6 @@
 from guardin_mind.manager import ConfigRead
 
-class HelloWorld:
+class Template:
     def __init__(self):
         # Load configs
         ConfigRead(self) # Required code
@@ -12,3 +12,6 @@ class HelloWorld:
         print(self.authors)
 
         return "Hello World"
+    
+template = Template()
+print(template.version)
