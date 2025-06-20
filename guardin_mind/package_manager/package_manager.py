@@ -15,7 +15,7 @@ import tomllib
 from pydantic import validate_arguments
 from packaging.specifiers import SpecifierSet
 
-def init_install_uninstall(author_minder: str, default_install_path: str | None) -> tuple | None:
+def init_install_uninstall(author_minder: str, default_install_path: str | None) -> tuple[str, str, str]:
     """
     Init package manager. Install and uninstall modes.
     """
@@ -210,7 +210,7 @@ def install_minder(author_minder: str, minders_install_path: str | None) -> bool
     return True
 
 @validate_arguments
-def uninstall_minder(author_minder: str, minders_install_path: str | None) -> bool | None:
+def uninstall_minder(author_minder: str, minders_install_path: str | None, confirm: bool = False) -> bool | None:
     """
     Accepts arguments for uninstalling the minder, and uninstalls it
     """
@@ -219,5 +219,23 @@ def uninstall_minder(author_minder: str, minders_install_path: str | None) -> bo
     author, minder, install_path = init_install_uninstall(author_minder, minders_install_path)
 
     # Check minder installed
-    if not check_minder_installed(minder, install_path):
-        print(Fore.LIGHTYELLOW_EX + f"WARNING: Skipping aldfhasdlfasj as it is not installed.")
+    if not check_minder_installed(install_path, minder):
+        print(Fore.LIGHTYELLOW_EX + f"WARNING: Skipping {author_minder} as it is not installed in {install_path}" + Style.RESET_ALL)
+        return True
+    
+    print(Fore.WHITE + f"Uninstalling {author_minder}" + Style.RESET_ALL)
+
+    if not confirm:
+        is_confirm = input(Fore.WHITE + "Proceed (Y/n)? " + Style.RESET_ALL)
+        if is_confirm.lower() == "n":
+            return True
+    
+    folder_path = Path(install_path) / minder # Build minder install path
+
+    # # Check if the folder exists and is indeed a directory
+    if folder_path.exists() and folder_path.is_dir():
+        shutil.rmtree(folder_path)
+        print(Fore.LIGHTGREEN_EX + f"    Successfully uninstalled {author_minder}" + Style.RESET_ALL)
+    else:
+        print(Fore.RED + f"    ERROR: Minder {author_minder} not found in {install_path}." + Style.RESET_ALL)
+        raise FileNotFoundError(f"ERROR: Minder {author_minder} not found in {install_path}.")
