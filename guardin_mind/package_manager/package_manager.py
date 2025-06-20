@@ -214,4 +214,10 @@ def uninstall_minder(author_minder: str, minders_install_path: str | None) -> bo
     """
     Accepts arguments for uninstalling the minder, and uninstalls it
     """
+
+    # Init
     author, minder, install_path = init_install_uninstall(author_minder, minders_install_path)
+
+    # Check minder installed
+    if not check_minder_installed(minder, install_path):
+        print(Fore.LIGHTYELLOW_EX + f"WARNING: Skipping aldfhasdlfasj as it is not installed.")
