@@ -1,5 +1,5 @@
 import argparse
-from guardin_mind.package_manager import install_minder
+from guardin_mind.package_manager import install_minder, uninstall_minder
 from pydantic import ValidationError
 
 def install_command(args):
@@ -8,7 +8,19 @@ def install_command(args):
     """
 
     try:
-        install_minder(args.author_minder, args.install_path)
+        install_minder(args.author_minder, args.path)
+    except ValidationError as e:
+        print(e)
+    except Exception as e:
+        print(e)
+
+def uninstall_command(args):
+    """
+    Uninstall minder
+    """
+
+    try:
+        uninstall_minder(args.author_minder, args.path)
     except ValidationError as e:
         print(e)
     except Exception as e:
@@ -23,7 +35,13 @@ def main():
     # Subcommand: install
     install_parser = subparsers.add_parser("install", help="Install minder")
     install_parser.add_argument("author_minder", help="The name of the minder to install. In the `author_MinderName` format.")
-    install_parser.add_argument("--install-path", help="Folder for installing minders", default=None)
+    install_parser.add_argument("--path", help="The absolute path to the folder for installing minders", default=None)
+    install_parser.set_defaults(func=install_command)
+
+    # Subcommand: uninstall
+    install_parser = subparsers.add_parser("uninstall", help="Uninstall minder")
+    install_parser.add_argument("author_minder", help="The name of the minder to uninstall. In the `author_MinderName` format.")
+    install_parser.add_argument("--path", help="The absolute path to the folder with the installed minders", default=None)
     install_parser.set_defaults(func=install_command)
 
     args = parser.parse_args()

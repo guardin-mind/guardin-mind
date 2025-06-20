@@ -15,61 +15,69 @@ import tomllib
 from pydantic import validate_arguments
 from packaging.specifiers import SpecifierSet
 
-@validate_arguments
-def install_minder(author_minder: str, minders_install_path: str | None):
+def init_install_uninstall(author_minder: str, default_install_path: str | None) -> tuple | None:
     """
-    Accepts arguments for installing the minder, and installs it
+    Init package manager. Install and uninstall modes.
     """
 
-    init()  # Init colorama
+    init() # Initialize colorama for colored terminal output
+    
+    os_name: str = platform.system()  # Get the operating system name
 
-    os_name: str = platform.system()  # Get OS
+    """
+    Accepts a string in the `author_MinderName` format and returns a tuple: (author, minder)
+    """
 
-    def parse_author_minder(author_and_minder: str):
-        """
-        Gets a string in the `author_MinderName` format and returns a split string in the tuple: (author, minder)
-        """
+    # Parse only the author and minder from the author_minder string
+    match = re.search(r'[A-Z][a-zA-Z]*$', author_minder)
 
-        # Parse from author_minder only author and minder
-        match = re.search(r'[A-Z][a-zA-Z]*$', author_and_minder)
+    if match:
+        minder: str = match.group()  # Extract minder name
+        author: str = author_minder[:match.start()].rstrip('_')  # Extract author name
+    else:
+        print(Fore.WHITE + f"Collecting {author_minder}" + Style.RESET_ALL)
+        print(Fore.RED + "    ERROR: Incorrect format. Use the format \"mind install <author_MinderName>\"" + Style.RESET_ALL)
+        raise ValueError("Incorrect format. Use the format \"mind install <author_MinderName>\"")
 
-        if match:
-            minder: str = match.group() # Parse minder name
-            author: str = author_and_minder[:match.start()].rstrip('_') # Parse author
-        else:
-            print(Fore.WHITE + f"Collecting {author_minder}" + Style.RESET_ALL)
-            print(Fore.RED + "    ERROR: Incorrect format. Use the format \"mind install <author_MinderName>\"" + Style.RESET_ALL)
-            raise ValueError("Incorrect format. Use the format \"mind install <author_MinderName>\"")
-            
-        return author, minder
-        
-    author, minder = parse_author_minder(author_minder)
-
-    # Get install path
-    if minders_install_path:
-        install_path = minders_install_path
+    # Determine install path
+    if default_install_path:
+        install_path = default_install_path
     else:
         if os_name == "Windows":
-            # Get inviron USERPROFILE and build path
+            # Get the USERPROFILE environment variable and build default path
             user_profile = os.environ.get("USERPROFILE", "")
             install_path = os.path.join(user_profile, ".guardin_mind", "minders")
         else:
-            # For Linux/macOS expanding ~ to home folder
+            # Expand '~' to the home directory on Linux/macOS
             install_path = os.path.expanduser("~/.guardin_mind/minders")
 
-    def check_minder_installed(parent_folder, folder_name):
-        """
-        Checking that the miner is not installed yet
-        """
-        path = Path(parent_folder) / folder_name
-        return path.is_dir()
+    return author, minder, install_path
+
+def check_minder_installed(install_path: str, minder_name: str) -> bool:
+    """
+    Checks if the minder is already installed
+    """
+    path = Path(install_path) / minder_name
+    return path.is_dir()
+
+@validate_arguments
+def install_minder(author_minder: str, minders_install_path: str | None) -> bool | None:
+    """
+    Accepts arguments for installing the minder, and installs it
+    """
+        
+    # Init
+    author, minder, install_path = init_install_uninstall(author_minder, minders_install_path)
     
-    # Checking if the minder is installed
+    # Check if the minder is already installed
     if check_minder_installed(install_path, minder):
-        print(Fore.GREEN + f"Requirement already satisfied: {author_minder} in {install_path}" + Style.RESET_ALL)
+        print(Fore.LIGHTGREEN_EX + f"Requirement already satisfied: {author_minder} in {install_path}" + Style.RESET_ALL)
         return True
 
     def download_repo_zip(user_repo, destination_folder):
+        """
+        Downloads the GitHub repository as a zip and extracts it into the destination folder
+        """
         zip_url = f"https://github.com/{user_repo}/archive/refs/heads/main.zip"
 
         print(Fore.WHITE + f"    Downloading {author_minder}" + Style.RESET_ALL)
@@ -77,13 +85,13 @@ def install_minder(author_minder: str, minders_install_path: str | None):
 
         if response.status_code == 200:
             with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-                # Временная папка для распаковки
+                # Temporary folder for extraction
                 temp_extract_path = Path(destination_folder) / "__temp_extract"
                 temp_extract_path.mkdir(parents=True, exist_ok=True)
 
                 z.extractall(temp_extract_path)
 
-                # Внутри temp_extract_path будет одна папка с именем repo-branch, например HelloWorld-main
+                # Expecting a single top-level folder inside the archive (e.g., HelloWorld-main)
                 extracted_dirs = [d for d in temp_extract_path.iterdir() if d.is_dir()]
                 if len(extracted_dirs) != 1:
                     print(Fore.RED + "    ERROR: Unexpected archive structure" + Style.RESET_ALL)
@@ -92,21 +100,21 @@ def install_minder(author_minder: str, minders_install_path: str | None):
                 extracted_dir = extracted_dirs[0]
                 final_path = Path(destination_folder) / minder
 
-                # Если итоговая папка уже есть, удалить её (или можно спросить пользователя)
+                # If target directory already exists, delete it
                 if final_path.exists():
                     shutil.rmtree(final_path)
 
-                # Переместить содержимое из распакованной папки в итоговую
+                # Move extracted content to the final directory
                 extracted_dir.rename(final_path)
 
-                # Удалить временную папку
+                # Delete temporary folder
                 shutil.rmtree(temp_extract_path)
 
         else:
-            print(Fore.RED + f"    ERROR: Error when downloading the minder from github. Error code: {response.status_code} for {zip_url}" + Style.RESET_ALL)
+            print(Fore.RED + f"    ERROR: Error when downloading the minder from GitHub. Error code: {response.status_code} for {zip_url}" + Style.RESET_ALL)
 
     print(Fore.WHITE + f"Collecting {author_minder}" + Style.RESET_ALL)
-    download_repo_zip(f"{author}/{minder}", install_path) # Download minder from github to minders folder
+    download_repo_zip(f"{author}/{minder}", install_path)  # Download minder from GitHub to minders folder
 
     minder_folder_path = f"{install_path}/{minder}"
 
@@ -115,20 +123,21 @@ def install_minder(author_minder: str, minders_install_path: str | None):
         config = tomllib.load(f)
 
     try:
-        # Checking for required parameters
+        # Check for required parameters in config
         name = config["minder"]["name"]
         version = config["minder"]["version"]
 
+        # Clean up variables
         del name
         del version
     except KeyError as e:
         print(Fore.RED + f"    ERROR: Minder '{author_minder}' requires a {e} field in minder_config.toml")
         raise ValueError(f"ERROR: Minder '{author_minder}' requires a {e} field in minder_config.toml")
 
-    # Check Python version
+    # Check for required Python version
     try:
         condition = config["minder"]["python"]
-        current_version = ".".join(map(str, sys.version_info[:3])) # Get current Python version
+        current_version = ".".join(map(str, sys.version_info[:3]))  # Get current Python version
 
         spec = SpecifierSet(condition)
 
@@ -139,12 +148,13 @@ def install_minder(author_minder: str, minders_install_path: str | None):
         del condition
         del current_version
     except KeyError:
+        # No Python version requirement specified
         pass
 
-    # Check Mind version
+    # Check for required Mind version
     try:
         condition = config["minder"]["mind"]
-        from guardin_mind import __version__ as current_version # get Mind version
+        from guardin_mind import __version__ as current_version  # Get installed Mind version
 
         spec = SpecifierSet(condition)
 
@@ -155,11 +165,10 @@ def install_minder(author_minder: str, minders_install_path: str | None):
         del condition
         del current_version
     except KeyError:
+        # No Mind version requirement specified
         pass
 
-    # Installing minder dependencies
-
-    # Installing Python packages
+    # Install Python package dependencies listed in the config
     try:
         dependencies = config["minder"]["install-requires"]
 
@@ -167,33 +176,42 @@ def install_minder(author_minder: str, minders_install_path: str | None):
             spec = importlib.util.find_spec(lib)
             if spec is None:
                 subprocess.check_call([sys.executable, "-m", "pip", "install", lib])
-                spec = importlib.util.find_spec(lib)  # update spec before install
-
+                spec = importlib.util.find_spec(lib)  # Update spec after installation
                 continue
 
+            # Show where the package is already installed
             if spec is not None and spec.origin is not None:
                 if spec.origin.endswith('__init__.py'):
                     lib_path = os.path.abspath(os.path.dirname(spec.origin))
                 else:
                     lib_path = os.path.abspath(spec.origin)
-                print(Fore.GREEN + f"Requirement already satisfied: {lib} in {lib_path}" + Style.RESET_ALL)
+                print(Fore.LIGHTGREEN_EX + f"Requirement already satisfied: {lib} in {lib_path}" + Style.RESET_ALL)
             else:
                 print(Fore.YELLOW + f"Requirement already satisfied: {lib}" + Style.RESET_ALL)
     except KeyError:
+        # No Python dependencies specified
         pass
 
-    # Installing Mind minders
+    # Install required minders listed in the config
     try:
-        dependencies = config["minder"]["requires-minders"] # Read the requires of minder
+        dependencies = config["minder"]["requires-minders"]  # Read required minders
 
         for lib in dependencies:
-            if not check_minder_installed(install_path, lib): # Checking if the minder is installed
-                install_minder(lib, install_path)
+            if not check_minder_installed(install_path, lib):  # Check if the minder is already installed
+                install_minder(lib, install_path)  # Recursively install the required minder
             else:
-                print(Fore.GREEN + f"Requirement already satisfied: {lib} in {install_path}" + Style.RESET_ALL)
+                print(Fore.LIGHTGREEN_EX + f"Requirement already satisfied: {lib} in {install_path}" + Style.RESET_ALL)
     except KeyError:
+        # No dependent minders specified
         pass
 
-    print(Fore.GREEN + f"Successfully installed {author_minder}" + Style.RESET_ALL)
+    print(Fore.LIGHTGREEN_EX + f"Successfully installed {author_minder}" + Style.RESET_ALL)
 
     return True
+
+@validate_arguments
+def uninstall_minder(author_minder: str, minders_install_path: str | None) -> bool | None:
+    """
+    Accepts arguments for uninstalling the minder, and uninstalls it
+    """
+    author, minder, install_path = init_install_uninstall(author_minder, minders_install_path)

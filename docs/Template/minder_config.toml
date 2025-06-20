@@ -1,10 +1,10 @@
 [minder]
 name = "Template" # Required parameter
-version = "1.0.0" # Required parameter
+version = "0.1.0" # Required parameter
 description = "Hello World for the example of minder" # Short description. Required parameter
 authors = [ # The list of authors. If there is only one author, make a list with one dictionary.
     { name = "First Author", email = "email@example.org" },
-    { name = "Second Author", "email" = "email@example.org" }
+    { name = "Second Author", email = "email@example.org" }
 ]
 readme = "README.md" #  README file
 urls = [ # Links. For example, a repository, an official website, etc.
@@ -17,5 +17,5 @@ install-requires = [ # List of required libraries
     "requests"
 ]
 requires-minders = [ # List of required minders
-    "HelloWorld"
+    "esolment_HelloWorld"
 ]
