@@ -1,5 +1,5 @@
 from colorama import init, Fore, Style # Use colorama for color prints
-from guardin_mind.configs import _default_minders_folder
+from guardin_mind.configs import _default_mind_folder
 import os
 import inspect
 import importlib.util
@@ -18,7 +18,7 @@ class MinderSearch:
 
     def __init__(self, minders_dir: str | None = None):
         # If debug mode is enabled, log the key directories involved in the execution.
-        self.minders_dir = minders_dir if minders_dir is not None else _default_minders_folder
+        self.minders_dir = minders_dir if minders_dir is not None else _default_mind_folder
 
     def search_minder_locally(self, minder_name: str) -> str | None:
         '''
@@ -103,7 +103,7 @@ class MinderSearch:
             # Get the absolute path to the minder directory
             minder_folder_path = self.search_minder_locally(minder_name)
             if minder_folder_path is None:
-                raise ValueError(f"Minder {minder_name} is not installed in {_default_minders_folder}.")
+                raise ValueError(f"Minder {minder_name} is not installed in {_default_mind_folder}.")
         else:
             # Check minder folder exists
             if not os.path.isfile(os.path.join(self.minder_path, "minder.py")):
@@ -176,10 +176,9 @@ class Mind(MinderSearch):
 
     def load(self, cls: Type[T]) -> T:
         name = cls.__name__
-        minder_cls = self.get_minder(name)
-        if minder_cls is None:
+        if cls is None:
             raise AttributeError(f"No minder class found for '{name}'")
-        return minder_cls()
+        return cls()
 
     def get_version_from_file(self, path):
         """
