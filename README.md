@@ -1,82 +1,84 @@
-
 ![Guardin Mind Framework](docs/assets/mind-logo-without-back.png)
 
-***
-
-**Guardin Mind** — это современный фреймворк для создания высокоэффективных **programmatic API** с помощью Python.
-
-В отличие от REST API, работающего на HTTP-запросов, **programmatic API** использует прямые вызовы функций, методов и классов, обеспечивая молниеносное взаимодействие между клиентом и API как с обычной библиотекой.
-
-**Ключевые особенности:**
-- Быстро: Очень выскокая производительность, все запросы обрабатываются моментальнно.
-- Быстрое кодирование: Вам не придется заботится о коллизиях, типизации.
-- Встроенный менеджер пакетов: Устанавливайте майндеры напрямую с GitHub через встроенный менеджер пакетов.
 ---
 
-## 🚀 Быстрый пример использования майндера HelloWorld
+**Guardin Mind** is a modern framework for building high-performance **programmatic APIs** using Python.
+
+Unlike REST APIs that operate over HTTP requests, a **programmatic API** uses direct function, method, and class calls, enabling lightning-fast interaction between the client and API as if it were a regular library.
+
+**Key Features:**
+
+* Fast: Extremely high performance — all requests are handled instantly.
+* Rapid Development: No need to worry about collisions or type definitions.
+* Built-in Package Manager: Install minders directly from GitHub using the built-in package manager.
+
+---
+
+## 🚀 Quick Example Using the HelloWorld Minder
 
 ```python
 from guardin_mind import Mind
 import asyncio
 
-mind = Mind()  # Инициализация ядра фреймворка
-hello_world = mind.HelloWorld()  # Загрузка майндера HelloWorld
+mind = Mind()  # Initialize the framework core
+hello_world = mind.HelloWorld()  # Load the HelloWorld minder
 
-# Синхронный запрос
-result = hello_world.ask_sync("Привет через sync")
+# Synchronous request
+result = hello_world.ask_sync("Hello via sync")
 print(result)
 
-# Асинхронный запрос
-result = asyncio.run(hello_world.ask_async("Привет через async"))
+# Asynchronous request
+result = asyncio.run(hello_world.ask_async("Hello via async"))
 print(result)
 ```
-Предварительно нужно установить майндер `HelloWorld` через менеджер 
-пакетов:
+
+Before running the code, install the `HelloWorld` minder using the package manager:
+
 ```bash
 mind install esolment_HelloWorld
 ```
 
 ---
 
-## 📖 Описание
+## 📖 Description
 
-Фреймворк **Guardin Mind** позволяет:
+The **Guardin Mind** framework enables you to:
 
-* Делить API на независимые модули — **майндеры** (*minders*), каждый из которых представляет собой отдельное логическое API.
-* Создавать гибкие, асинхронные и расширяемые архитектуры.
-* Строить очередь запросов и управлять высоконагруженными задачами.
-* Взаимодействовать и управлять майндерами через встроеннный менеджер пакетов. Что позволяет спокойно заменять части API.
-* Использовать programmatic API вместо традиционных REST/HTTP интерфейсов.
-
----
-
-## 📚 Документация
-
-Полная документация доступна по [здесь](docs).
+* Split your API into independent modules — called **minders**, each acting as a standalone logical API.
+* Create flexible, asynchronous, and extensible architectures.
+* Build a request queue and handle high-load tasks efficiently.
+* Interact with and manage minders via the built-in package manager, allowing easy replacement of API components.
+* Use programmatic API instead of traditional REST/HTTP interfaces.
 
 ---
 
-## ⚙️ Системные требования
+## 📚 Documentation
 
-* **Минимальная версия Python**: `3.11.4`
-* **Рекомендуемая версия Python**: `3.13.x`
+Full documentation is available [here](docs).
 
-> Обратите внимание: каждый майндер может иметь свои зависимости, включая:
+---
+
+## ⚙️ System Requirements
+
+* **Minimum Python version**: `3.11.4`
+* **Recommended Python version**: `3.13.x`
+
+> Note: Each minder can have its own dependencies, including:
 >
-> * Требования к версии Python
-> * Предпочтения по операционной системе
-> * Дополнительные библиотеки или внешние утилиты (драйвера и т. д.)
+> * Specific Python version requirements
+> * OS preferences
+> * Additional libraries or external tools (e.g., drivers)
 
-Фреймворк кроссплатформенный, однако майндеры могут иметь специфические ограничения.
+The framework is cross-platform, though some minders may have platform-specific requirements.
 
 ---
 
-## 📁 Структура проекта
+## 📁 Project Structure
 
 ```
-docs/               # Документация
-guardin_mind/       # Исходный код библиотеки
-tests/              # Тесты
+docs/               # Documentation
+guardin_mind/       # Library source code
+tests/              # Tests
 
 .gitattributes
 .gitignore
@@ -89,55 +91,69 @@ requirements.txt
 
 ---
 
-## 🛠 Установка
-
-Установка из PyPI:
+## 🛠 Installation
 
 ```bash
-pip install guardin-mind
-```
-
-Установка из репозитория (для разработки):
-
-```bash
-git clone https://github.com/esolment/guardin-mind
+git clone https://github.com/guardin-mind/guardin-mind
 cd guardin-mind
 pip install -e .
 ```
 
-> Установка с флагом `-e` позволяет вносить изменения в исходный код и тут же видеть результат — удобно при разработке.
+> Installing with the `-e` flag enables editable mode, so any changes to the source code are immediately reflected — perfect for development.
+
+Verify installation:
+
+```bash
+mind --version
+```
 
 ---
 
-## 🧠 Майндеры
+## 🧠 Minders
 
-### Импорт стандартного майндера
+### Importing a Minder
 
-Если ваш майндер находится в директории `guardin_mind/minders`, импорт может выглядеть так:
-
-```python
-from guardin_mind.minders.MinderName.minder import MinderName
-from guardin_mind import Mind
-
-mind = Mind()
-minder = mind.load(MinderName)
-```
-
-или короче:
+If your minder is located in `~/.guardin-mind/minders` on UNIX or `%USERPROFILE%\.guardin-mind\minders` on Windows, import it as follows:
 
 ```python
 from guardin_mind import Mind
 
 mind = Mind()
-minder = mind.MinderName()
+minder = mind.MinderName()  # Replace MinderName with the actual minder name
 ```
 
-> ✅ Первый способ предпочтительнее при разработке: IDE сможет подсказать методы и свойства.
-> 🚀 Второй — удобен для продакшн-кода, когда не требуется автодополнение.
+If your minder is installed in a custom directory:
 
-### Загрузка майндера из внешней директории
+```python
+from guardin_mind import Mind
 
-Если майндер не находится внутри `guardin_mind/minders`, его можно загрузить вручную:
+"""
+Directory structure:
+custom-directory/
+    minders/
+        MinderName/
+            ...minder files...
+"""
+
+mind = Mind(path=r"C:\custom-directory")  # Set `path` to the folder that contains the `minders` folder
+# Note: Specify the parent directory of `minders`, not `minders` itself.
+
+minder = mind.MinderName()  # Replace MinderName with the actual minder name
+```
+
+During development, you can directly import the main minder class in your code and load it:
+
+```python
+from .MinderName.minder import MinderName  # Here, MinderName is the name of the main class
+from guardin_mind import Mind
+
+mind = Mind()
+minder = mind.load(MinderName)  # Pass the main minder class to the `load()` function
+```
+
+### Loading a Minder from an External Directory
+
+If the minder is not located inside `guardin_mind/minders`, you can load it manually:
 
 ```python
 from guardin_mind import Mind
@@ -146,38 +162,38 @@ mind = Mind(minder_path="C:/Users/Username/ProjectName/MyMinder")
 minder = mind.MyMinder()
 ```
 
-> Важно: `MinderName` в примерах — это **точное имя папки, класса и конфигурации майндера**.
+> Important: In all examples, `MinderName` must **exactly match** the folder name, class name, and minder configuration.
 
 ---
 
-## ✨ Создание собственного майндера
+## ✨ Creating Your Own Minder
 
-Создание майндера — простой и быстрый процесс:
+Creating a minder is a simple and fast process:
 
-1. Скопируйте папку-шаблон из `docs/Template`.
-2. Переименуйте папку `Template` в имя вашего майндера, например: `MyMinder`.
-3. Откройте `minder_config.toml` и укажите параметры майндера. Параметр `name` должен **совпадать** с именем папки и класса.
-4. В `minder.py` создайте основной класс, совпадающий по имени с майндером.
+1. Copy the template folder from `docs/Template`.
+2. Rename the `Template` folder to your minder’s name, e.g., `MyMinder`.
+3. Open `minder_config.toml` and configure your minder. The `name` parameter **must match** the folder and class name.
+4. In `minder.py`, create the main class using the same name as the minder.
 
-> **⚠️ ВАЖНО:**
-> Названия **должны совпадать в следующих местах:**
+> **⚠️ IMPORTANT:**
+> The following names must **match exactly**:
 >
-> * Название папки майндера
-> * Значение `name` в `minder_config.toml`
-> * Название основного класса в `minder.py`
+> * The minder folder name
+> * The `name` value in `minder_config.toml`
+> * The name of the main class in `minder.py`
 
-### Базовая структура майндера:
+### Basic Minder Structure:
 
 ```
 MyMinder/
 │
-├── minder_config.toml     # Конфигурация майндера
-├── minder.py              # Основная логика майндера (содержит основной класс)
-└── README.md              # Описание библиотеки (не обязателен)
+├── minder_config.toml     # Minder configuration
+├── minder.py              # Minder logic (contains the main class)
+└── README.md              # Minder description (optional)
 ```
 
 ---
 
-## ✅ Рекомендуем к изучению
+## ✅ Recommended Reading
 
-Изучите [официальную документацию](docs) для полного понимания архитектуры и возможностей Guardin Mind.
+Explore the [official documentation](docs) for a complete understanding of Guardin Mind’s architecture and capabilities.
