@@ -96,13 +96,9 @@ requirements.txt
 ```bash
 git clone https://github.com/guardin-mind/guardin-mind
 cd guardin-mind
-pip install -e .
+pip install .
 ```
-
-> Installing with the `-e` flag enables editable mode, so any changes to the source code are immediately reflected — perfect for development.
-
 Verify installation:
-
 ```bash
 mind --version
 ```

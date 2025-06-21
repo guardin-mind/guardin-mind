@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "guardin-mind"
-version = "1.0.0"
+version = "1.0.5"
 # The version needs to be duplicated in several places:
 # 1. pyproject.toml/[project]/version
 # 3. guardin_mind/__init__.py/__version__
@@ -36,7 +36,7 @@ dev = [
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["guardin_mind"]
+include = ["guardin_mind*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
