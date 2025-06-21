@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "guardin-mind"
-version = "0.1.2"
+version = "1.0.0"
 # The version needs to be duplicated in several places:
 # 1. pyproject.toml/[project]/version
 # 3. guardin_mind/__init__.py/__version__
@@ -29,8 +29,7 @@ mind = "guardin_mind.cli:main"
 # Dependencies for develop
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "coverage"
+    "pytest"
 ]
 
 [tool.setuptools]

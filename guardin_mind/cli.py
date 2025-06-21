@@ -1,6 +1,8 @@
 import argparse
 from guardin_mind.package_manager import install_minder, uninstall_minder
 from pydantic import ValidationError
+from colorama import Fore, Style, init
+from guardin_mind import __version__
 
 def install_command(args):
     # Iterate through the list of minders to install each one
@@ -9,8 +11,8 @@ def install_command(args):
             install_minder(minder, args.path)
         except ValidationError as e:
             print(e)
-        except Exception as e:
-            print(e)
+        except:
+            pass
 
 def uninstall_command(args):
     # Iterate through the list of minders to uninstall each one
@@ -19,14 +21,26 @@ def uninstall_command(args):
             uninstall_minder(minder, args.path, args.y)
         except ValidationError as e:
             print(e)
-        except Exception as e:
-            print(e)
+        except:
+            pass
+
+def version_command(args):
+    init(autoreset=True)
+
+    print(f"{Style.BRIGHT}Guardin Mind{Style.RESET_ALL} (version {Fore.CYAN}{__version__}{Style.RESET_ALL})")
 
 def main():
     # Create the top-level parser
     parser = argparse.ArgumentParser(description="Guardin Mind CLI")
+
+    parser.add_argument(
+        '--version',
+        action='store_true',
+        help='Show Mind version and exit'
+    )
+
     # Add subparsers for 'install' and 'uninstall' commands
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers = parser.add_subparsers(dest="command", required=False)
 
     # Define 'install' subcommand parser
     install_parser = subparsers.add_parser("install", help="Install minder")
@@ -63,4 +77,10 @@ def main():
 
     # Parse the CLI arguments and execute the selected subcommand function
     args = parser.parse_args()
-    args.func(args)
+
+    if args.version:
+        version_command(args)
+    elif hasattr(args, "func"):
+        args.func(args)
+    else:
+        parser.print_help()

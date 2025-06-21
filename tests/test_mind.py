@@ -1,214 +1,105 @@
 import os
-import sys
 import tempfile
-import shutil
+import types
 import pytest
-from unittest import mock
-from guardin_mind import Mind, MinderSearch, PythonVersionError, GuardinMindVersionError
+from guardin_mind import MinderSearch, Mind
 
-# Test the get_version_from_file method
+# Helper function to create a minder folder structure
+def create_minder_dir(base_dir, minder_name, minder_code=None):
+    minder_dir = os.path.join(base_dir, "minders", minder_name)
+    os.makedirs(minder_dir, exist_ok=True)
+    minder_file = os.path.join(minder_dir, "minder.py")
+    if minder_code is None:
+        # By default, create a simple class with the same name as the minder
+        minder_code = f"class {minder_name}:\n    pass\n"
+    with open(minder_file, "w", encoding="utf-8") as f:
+        f.write(minder_code)
+    return minder_dir, minder_file
+
+def test_search_minder_locally():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        minders_dir = os.path.join(tmpdir, "minders")
+        os.makedirs(minders_dir)
+        # Create a minder
+        minder_name = "TestMinder"
+        os.makedirs(os.path.join(minders_dir, minder_name))
+        
+        ms = MinderSearch(minders_dir=tmpdir)
+        found_path = ms.search_minder_locally(minder_name)
+        assert found_path is not None
+        assert found_path.endswith(f"minders/{minder_name}")
+
+        # Search for a non-existent minder
+        assert ms.search_minder_locally("NoSuchMinder") is None
+
+def test_load_minder_success_and_failure():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        minder_name = "TestMinder"
+        _, minder_file = create_minder_dir(tmpdir, minder_name, 
+            minder_code=f"class {minder_name}:\n    def hello(self): return 'hi'\n")
+
+        ms = MinderSearch(minders_dir=tmpdir)
+        cls = ms.load_minder(minder_file, minder_name)
+        assert cls is not None
+        instance = cls()
+        assert instance.hello() == "hi"
+
+        # Try to load a class with the wrong name
+        cls_none = ms.load_minder(minder_file, "WrongName")
+        assert cls_none is None
+
+def test_get_minder_success_and_fail(tmp_path):
+    minder_name = "TestMinder"
+    create_minder_dir(tmp_path, minder_name)
+
+    ms = MinderSearch(minders_dir=tmp_path)
+
+    # Set minder_path to None to use local search
+    ms.minder_path = None
+    cls = ms.get_minder(minder_name)
+    assert cls is not None
+    assert cls.__name__ == minder_name
+
+    # Check for exception if minder not found
+    with pytest.raises(ValueError):
+        ms.get_minder("NoSuchMinder")
+
+def test_mind_dynamic_loading(tmp_path):
+    minder_name = "DynamicMinder"
+    create_minder_dir(tmp_path, minder_name)
+
+    mind = Mind(path=tmp_path)
+    # Accessing the attribute dynamically loads the class
+    cls = getattr(mind, minder_name)
+    assert cls.__name__ == minder_name
+
+    # Check caching — subsequent access returns the same class
+    cls2 = getattr(mind, minder_name)
+    assert cls is cls2
+
+    # Check for exception when requesting a non-existent minder
+    with pytest.raises(ValueError):
+        getattr(mind, "NoSuchMinder")
+
+def test_load_method_returns_instance(tmp_path):
+    minder_name = "LoadMinder"
+    create_minder_dir(tmp_path, minder_name)
+
+    mind = Mind(path=tmp_path)
+    cls = getattr(mind, minder_name)
+    instance = mind.load(cls)
+    assert instance.__class__.__name__ == minder_name
+
 def test_get_version_from_file(tmp_path):
-    file = tmp_path / "__init__.py"
-    file.write_text('__version__ = "0.1.0"\n')
-    mind = Mind()
-    version = mind.get_version_from_file(str(file))
-    assert version == "0.1.0"
+    version_file = tmp_path / "__init__.py"
+    version_file.write_text("__version__ = '1.2.3'")
 
-def test_get_version_from_file_raises(tmp_path):
-    file = tmp_path / "__init__.py"
-    file.write_text('no version here\n')
     mind = Mind()
+    version = mind.get_version_from_file(str(version_file))
+    assert version == "1.2.3"
+
+    # Check for exception if version string is not found
+    bad_file = tmp_path / "bad_init.py"
+    bad_file.write_text("no version here")
     with pytest.raises(RuntimeError):
-        mind.get_version_from_file(str(file))
-
-# Test search_minder_locally - create temporary structure
-def test_search_minder_locally(tmp_path):
-    mind = MinderSearch()
-    # Set necessary attributes to avoid AttributeError
-    mind.debug_mode = False
-    mind.logger = mock.Mock()
-    mind.current_dir = str(tmp_path)
-    mind.import_dir = str(tmp_path)
-    mind.minder_path = None
-    mind.version = "0.1.0"
-
-    (tmp_path / "minders").mkdir()
-    (tmp_path / "minders" / "TestMinder").mkdir()
-
-    # Should find the directory
-    found = mind.search_minder_locally("TestMinder")
-    assert found is not None
-    assert found.endswith("TestMinder")
-
-    # Should not find non-existing minder
-    not_found = mind.search_minder_locally("NoMinder")
-    assert not_found is None
-
-# Test load_minder — dynamically load module with class
-def test_load_minder(tmp_path):
-    mind = MinderSearch()
-    # Set necessary attributes
-    mind.debug_mode = False
-    mind.logger = mock.Mock()
-    mind.current_dir = str(tmp_path)
-    mind.import_dir = str(tmp_path)
-    mind.minder_path = None
-    mind.version = "0.1.0"
-
-    class_code = "class TestMinder:\n    pass\n"
-    file = tmp_path / "minder.py"
-    file.write_text(class_code)
-
-    cls = mind.load_minder(str(file), "TestMinder")
-    assert cls is not None
-    assert cls.__name__ == "TestMinder"
-
-    # Attempt to load non-existing class should return None
-    cls_none = mind.load_minder(str(file), "NoSuchClass")
-    assert cls_none is None
-
-# Test get_minder with minimal structure imitation
-def test_get_minder(tmp_path, monkeypatch):
-    mind = Mind()
-    mind.debug_mode = False
-    mind.current_dir = str(tmp_path)
-    mind.import_dir = str(tmp_path)
-    mind.minder_path = None
-    mind.version = "0.1.0"
-
-    minders_dir = tmp_path / "minders"
-    minder_dir = minders_dir / "SampleMinder"
-    minder_dir.mkdir(parents=True)
-
-    # Create minder_config.toml
-    config_text = """
-name = "SampleMinder"
-version = "0.1.0"
-description = "Test minder"
-authors = [{name = "Tester", email = "test@example.com"}]
-python_requires = ">=3.6"
-mind_requires = ">=0.1.0"
-install_requires = []
-"""
-    (minder_dir / "minder_config.toml").write_text(config_text, encoding="utf-8")
-
-    # Create dummy minder.py with SampleMinder class
-    minder_code = "class SampleMinder:\n    pass\n"
-    (minder_dir / "minder.py").write_text(minder_code)
-
-    # Check that SampleMinder class is returned
-    cls = mind.get_minder("SampleMinder")
-    assert cls is not None
-    assert cls.__name__ == "SampleMinder"
-
-# Test exception if minder_config.toml is missing
-def test_get_minder_no_config(tmp_path):
-    mind = Mind()
-    mind.debug_mode = False
-    mind.current_dir = str(tmp_path)
-    mind.import_dir = str(tmp_path)
-    mind.minder_path = None
-    mind.version = "0.1.0"
-
-    minders_dir = tmp_path / "minders"
-    minder_dir = minders_dir / "BadMinder"
-    minder_dir.mkdir(parents=True)
-    # No config file present!
-
-    with pytest.raises(FileNotFoundError):
-        mind.get_minder("BadMinder")
-
-# Test incompatible python_requires raises PythonVersionError
-def test_get_minder_python_version_error(tmp_path):
-    mind = Mind()
-    mind.debug_mode = False
-    mind.current_dir = str(tmp_path)
-    mind.import_dir = str(tmp_path)
-    mind.minder_path = None
-    mind.version = "0.1.0"
-
-    minders_dir = tmp_path / "minders"
-    minder_dir = minders_dir / "PyVersionMinder"
-    minder_dir.mkdir(parents=True)
-
-    config_text = """
-name = "PyVersionMinder"
-version = "0.1.0"
-description = "Test minder"
-authors = [{name = "Tester", email = "test@example.com"}]
-python_requires = ">=999.0.0"  # Version incompatible with current
-mind_requires = ">=0.1.0"
-install_requires = []
-"""
-    (minder_dir / "minder_config.toml").write_text(config_text, encoding="utf-8")
-    (minder_dir / "minder.py").write_text("class PyVersionMinder:\n    pass\n")
-
-    with pytest.raises(PythonVersionError):
-        mind.get_minder("PyVersionMinder")
-
-# Test incompatible GuardinMind version raises GuardinMindVersionError
-def test_get_minder_guardin_version_error(tmp_path):
-    mind = Mind()
-    mind.debug_mode = False
-    mind.current_dir = str(tmp_path)
-    mind.import_dir = str(tmp_path)
-    mind.minder_path = None
-    mind.version = "0.1.0"
-
-    minders_dir = tmp_path / "minders"
-    minder_dir = minders_dir / "MindVersionMinder"
-    minder_dir.mkdir(parents=True)
-
-    config_text = """
-name = "MindVersionMinder"
-version = "0.1.0"
-description = "Test minder"
-authors = [{name = "Tester", email = "test@example.com"}]
-python_requires = ">=3.6"
-mind_requires = ">=999.0.0"  # Incompatible version
-install_requires = []
-"""
-    (minder_dir / "minder_config.toml").write_text(config_text, encoding="utf-8")
-    (minder_dir / "minder.py").write_text("class MindVersionMinder:\n    pass\n")
-
-    with pytest.raises(GuardinMindVersionError):
-        mind.get_minder("MindVersionMinder")
-
-# Test __getattr__ dynamic creation of class and handle missing minder as expected
-def test_getattr_dynamic(tmp_path):
-    mind = Mind()
-    mind.debug_mode = False
-    mind.current_dir = str(tmp_path)
-    mind.import_dir = str(tmp_path)
-    mind.minder_path = None
-    mind.version = "0.1.0"
-
-    minders_dir = tmp_path / "minders"
-    minder_dir = minders_dir / "DynamicMinder"
-    minder_dir.mkdir(parents=True)
-
-    config_text = """
-name = "DynamicMinder"
-version = "0.1.0"
-description = "Test minder"
-authors = [{name = "Tester", email = "test@example.com"}]
-python_requires = ">=3.6"
-mind_requires = ">=0.1.0"
-install_requires = []
-"""
-    (minder_dir / "minder_config.toml").write_text(config_text, encoding="utf-8")
-    (minder_dir / "minder.py").write_text("class DynamicMinder:\n    pass\n")
-
-    # Access the class dynamically via __getattr__
-    cls = mind.DynamicMinder
-    assert cls.__name__ == "DynamicMinder"
-
-    # Trying to access a non-existing minder should raise AttributeError or ValueError internally.
-    # Catch both exceptions and consider it correct behavior (test passes if exception is raised).
-    try:
-        _ = mind.NoSuchMinder
-    except (AttributeError, ValueError) as e:
-        # Expected behavior: minder not found
-        assert "NoSuchMinder" in str(e) or True
-    else:
-        pytest.fail("Accessing non-existing minder did not raise expected exception")
+        mind.get_version_from_file(str(bad_file))

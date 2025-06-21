@@ -7,6 +7,7 @@ import re
 import sys
 import importlib.util
 from guardin_mind import PythonVersionError, MindVersionError
+from guardin_mind.configs import _default_minders_folder
 import os
 from pathlib import Path
 import subprocess
@@ -21,19 +22,13 @@ def init_install_uninstall(author_minder: str, default_install_path: str | None)
     """
 
     init() # Initialize colorama for colored terminal output
-    
-    os_name: str = platform.system()  # Get the operating system name
-
-    """
-    Accepts a string in the `author_MinderName` format and returns a tuple: (author, minder)
-    """
 
     # Parse only the author and minder from the author_minder string
-    match = re.search(r'[A-Z][a-zA-Z]*$', author_minder)
+    match = re.fullmatch(r'([a-zA-Z0-9]+)_([A-Z][a-zA-Z0-9]*)', author_minder)
 
     if match:
-        minder: str = match.group()  # Extract minder name
-        author: str = author_minder[:match.start()].rstrip('_')  # Extract author name
+        author: str = match.group(1)  # Extract author name
+        minder: str = match.group(2)  # Extract minder name
     else:
         print(Fore.WHITE + f"Collecting {author_minder}" + Style.RESET_ALL)
         print(Fore.RED + "    ERROR: Incorrect format. Use the format \"mind install <author_MinderName>\"" + Style.RESET_ALL)
@@ -43,13 +38,7 @@ def init_install_uninstall(author_minder: str, default_install_path: str | None)
     if default_install_path:
         install_path = default_install_path
     else:
-        if os_name == "Windows":
-            # Get the USERPROFILE environment variable and build default path
-            user_profile = os.environ.get("USERPROFILE", "")
-            install_path = os.path.join(user_profile, ".guardin_mind", "minders")
-        else:
-            # Expand '~' to the home directory on Linux/macOS
-            install_path = os.path.expanduser("~/.guardin_mind/minders")
+        install_path = _default_minders_folder
 
     return author, minder, install_path
 

@@ -1,5 +1,5 @@
-from .mind_utils.logger import * # Import logger
 from colorama import init, Fore, Style # Use colorama for color prints
+from guardin_mind.configs import _default_minders_folder
 import os
 import inspect
 import importlib.util
@@ -16,9 +16,9 @@ class MinderSearch:
     A "minder" is assumed to be a module or package managed by this system.
     '''
 
-    def __init__(self, debug_mode: bool = False):
+    def __init__(self, minders_dir: str | None = None):
         # If debug mode is enabled, log the key directories involved in the execution.
-        self.debug_mode = debug_mode
+        self.minders_dir = minders_dir if minders_dir is not None else _default_minders_folder
 
     def search_minder_locally(self, minder_name: str) -> str | None:
         '''
@@ -31,7 +31,7 @@ class MinderSearch:
         Returns:
             str | None: The absolute path to the minder directory if found, otherwise None.
         '''
-        minders_dir = f"{self.current_dir}/minders"
+        minders_dir = os.path.join(self.minders_dir, "minders")
 
         # Iterate over entries in the "minders" directory
         for entry in os.listdir(minders_dir):
@@ -76,11 +76,6 @@ class MinderSearch:
             return cls
 
         except Exception as e:
-            # Log error if debug mode is enabled
-            if self.debug_mode:
-                self.logger.error(f"Failed to load minder: {e}")
-                print(Fore.RED + f"Failed to load {minder_name}: {e}" + Style.RESET_ALL)
-
             return None
 
     def get_minder(self, minder_name: str) -> type | None:
@@ -105,23 +100,15 @@ class MinderSearch:
 
         # If the path to a specific minder is not passed, find minders locally
         if not self.minder_path:
-            print(Fore.CYAN + f"Starting a local {minder_name} search" + Style.RESET_ALL)
-            if self.debug_mode:
-                self.logger.info(f"Starting a local {minder_name} search")
-
             # Get the absolute path to the minder directory
             minder_folder_path = self.search_minder_locally(minder_name)
             if minder_folder_path is None:
-                raise ValueError(f"Minder '{minder_name}' not found locally.")
+                raise ValueError(f"Minder {minder_name} is not installed in {_default_minders_folder}.")
         else:
             # Check minder folder exists
             if not os.path.isfile(os.path.join(self.minder_path, "minder.py")):
                 raise FileNotFoundError(f"The minder `{minder_name}` folder was not found on the path `{self.minder_path}`")
             minder_folder_path = self.minder_path
-
-        print(Fore.CYAN + f"Starting to load the {minder_name}" + Style.RESET_ALL)
-        if self.debug_mode:
-            self.logger.info(f"Starting to load the {minder_name}")
         
         # Load minder class from minder file
         minder_file = f"{minder_folder_path}/minder.py"
@@ -147,37 +134,16 @@ class Mind(MinderSearch):
 
     def __init__(
             self,
-            debug: bool = False,
-            minder_path: str | None = None, # Accepts the folder path of a specific minder. If the parameter is not passed, the minder will be searched locally
+            path: str | None = None # Accepts the folder path of a specific minders folder
         ):
-        # Determine the directory where the library file resides
-        self.current_dir: str = os.path.dirname(os.path.abspath(__file__)).replace("\\", "/")
-        # Determine the directory of the script that imported this module
-        self.import_dir: str = os.path.dirname(inspect.stack()[1].filename).replace("\\", "/")
 
-        self.minder_path: str | None = minder_path
-        if self.minder_path: # If minder_path not None, replace `\` to `/` for cross-platforming
-            self.minder_path = self.minder_path.replace("\\", "/")
-
-        # Get GuardinMind version from the `__init__.py` file without using import
-        self.version: str = self.get_version_from_file(f"{self.current_dir}/__init__.py")
+        self.minder_path = None # Fixed None
 
         # Dictionary to hold dynamically created minder classes
         self._dynamic_classes = {}
 
         # Initialize parent class (MinderSearch)
-        super().__init__()
-
-        self.debug_mode = debug
-
-        print("hdssflsd")
-        # Setup logger if debug is enabled, log file placed relative to the importing script
-        if self.debug_mode:
-            print("hshshssh")
-            self.logger = log_setup(f"{self.import_dir}/mind_logs.log", console_level=None)
-
-            self.logger.info(f"Library file directory: {self.current_dir}")
-            self.logger.info(f"Main importing script directory: {self.import_dir}")
+        super().__init__(minders_dir=path)
 
     def __getattr__(self, name):
         '''
